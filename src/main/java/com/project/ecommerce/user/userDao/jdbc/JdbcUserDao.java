@@ -2,38 +2,36 @@ package com.project.ecommerce.user.userDao.jdbc;
 
 import com.project.ecommerce.user.domain.entity.UserEntity;
 import com.project.ecommerce.user.userDao.UserDao;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Array;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
+
 @Repository
 public class JdbcUserDao implements UserDao {
-    private static final RowMapper<UserEntity> ROW_MAPPER = (resultSet, rowNum) -> {
-        Array rolesArray = resultSet.getArray("roles");
-        String[] roles = rolesArray == null ? new String[0] : (String[]) rolesArray.getArray();
-        return UserEntity.builder()
-                .id(resultSet.getLong("id"))
-                .name(resultSet.getString("name"))
-                .email(resultSet.getString("email"))
-                .password_hash(resultSet.getString("password_hash"))
-                .status(resultSet.getString("status"))
-                .roles(new HashSet<>(Arrays.asList(roles)))
-                .build();
-    };
 
-    private static final String USER_WITH_ROLES = """
-            SELECT u.id, u.name, u.email, u.password_hash, u.status,
-                   COALESCE(array_agg(r.name) FILTER (WHERE r.name IS NOT NULL), ARRAY[]::VARCHAR[]) AS roles
+    private static final String USER_WITH_ROLE_SQL_TEMPLATE = """
+            SELECT u.id, u.name, u.email, u.password_hash, u.status, r.name AS role
             FROM users u
-            LEFT JOIN user_roles ur ON ur.user_id = u.id
-            LEFT JOIN roles r ON r.id = ur.role_id
+            JOIN roles r ON r.id = u.role_id
             WHERE u.deleted_at IS NULL AND %s
-            GROUP BY u.id, u.name, u.email, u.password_hash, u.status
             """;
+
+    private static final String FIND_BY_ID_SQL = USER_WITH_ROLE_SQL_TEMPLATE.formatted("u.id = ?");
+    private static final String FIND_BY_EMAIL_SQL = USER_WITH_ROLE_SQL_TEMPLATE.formatted("u.email = ?");
+
+    private static final String CREATE_USER_SQL = """
+            INSERT INTO users (name, email, password_hash, role_id)
+            SELECT ?, ?, ?, id
+            FROM roles
+            WHERE name = ?
+            """;
+
+    private static final RowMapper<UserEntity> ROW_MAPPER =
+            new BeanPropertyRowMapper<>(UserEntity.class);
+
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcUserDao(JdbcTemplate jdbcTemplate) {
@@ -42,14 +40,12 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public Optional<UserEntity> findById(Long id) {
-        String sql = USER_WITH_ROLES.formatted("u.id = ?");
-        return jdbcTemplate.query(sql, ROW_MAPPER, id).stream().findFirst();
+        return jdbcTemplate.query(FIND_BY_ID_SQL, ROW_MAPPER, id).stream().findFirst();
     }
 
     @Override
     public Optional<UserEntity> findByEmail(String email) {
-        String sql = USER_WITH_ROLES.formatted("u.email = ?");
-        return jdbcTemplate.query(sql, ROW_MAPPER, email).stream().findFirst();
+        return jdbcTemplate.query(FIND_BY_EMAIL_SQL, ROW_MAPPER, email).stream().findFirst();
     }
 
     @Override
@@ -61,10 +57,12 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public int create(UserEntity user) {
-        String sql = """
-                INSERT INTO users (name, email, password_hash)
-                VALUES (?, ?, ?)
-                """;
-        return jdbcTemplate.update(sql, user.getName(), user.getEmail(), user.getPassword_hash());
+        return jdbcTemplate.update(
+                CREATE_USER_SQL,
+                user.getName(),
+                user.getEmail(),
+                user.getPassword_hash(),
+                user.getRole()
+        );
     }
 }

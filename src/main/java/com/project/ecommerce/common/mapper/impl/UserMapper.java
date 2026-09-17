@@ -14,7 +14,7 @@ public class UserMapper implements Mapper<UserEntity, UserDto> {
                 .name(userDto.getName())
                 .email(userDto.getEmail())
                 .status(userDto.getStatus())
-                .roles(userDto.getRoles())
+                .role(userDto.getRole())
                 .build();
     }
 
@@ -24,7 +24,7 @@ public class UserMapper implements Mapper<UserEntity, UserDto> {
                 .name(userEntity.getName())
                 .email(userEntity.getEmail())
                 .status(userEntity.getStatus())
-                .roles(userEntity.getRoles())
+                .role(userEntity.getRole())
                 .build();
     }
 }

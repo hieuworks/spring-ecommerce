@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Setter
 @Getter
 @Builder
@@ -23,6 +20,5 @@ public class UserDto {
     @Size(max = 255, message = "Email must not exceed 255 characters.")
     private String email;
     private String status; // ACTIVE, DISABLE
-    @Builder.Default
-    private Set<String> roles = new HashSet<>(); //ADMIN, USER...
+    private String role; // USER, ADMIN
 }

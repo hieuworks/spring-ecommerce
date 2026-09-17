@@ -45,7 +45,7 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.user.email").value(email))
-                .andExpect(jsonPath("$.user.roles[0]").value("USER"))
+                .andExpect(jsonPath("$.user.role").value("USER"))
                 .andReturn();
 
         JsonNode response = new ObjectMapper().readTree(login.getResponse().getContentAsString());

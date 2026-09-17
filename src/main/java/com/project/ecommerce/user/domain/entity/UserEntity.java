@@ -2,9 +2,6 @@ package com.project.ecommerce.user.domain.entity;
 
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Setter
 @Getter
 @Builder
@@ -16,6 +13,5 @@ public class UserEntity {
     private String email;
     private String password_hash;
     private String status; // ACTIVE, DISABLE
-    @Builder.Default
-    private Set<String> roles = new HashSet<>();
+    private String role; // USER, ADMIN
 }

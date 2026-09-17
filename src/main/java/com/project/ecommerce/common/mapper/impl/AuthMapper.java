@@ -20,6 +20,7 @@ public class AuthMapper implements Mapper<UserEntity, RegisterRequest> {
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .password_hash(passwordEncoder.encode(registerRequest.getPassword()))
+                .role("USER")
                 .build();
     }
 

@@ -23,8 +23,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.http.HttpStatus;
 
-import java.util.Locale;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -67,9 +65,7 @@ public class SecurityConfig {
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
             return User.withUsername(user.getEmail())
                     .password(user.getPassword_hash())
-                    .authorities(user.getRoles().stream()
-                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase(Locale.ROOT)))
-                            .toList())
+                    .authorities(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
                     .disabled(!"ACTIVE".equalsIgnoreCase(user.getStatus()))
                     .build();
         };

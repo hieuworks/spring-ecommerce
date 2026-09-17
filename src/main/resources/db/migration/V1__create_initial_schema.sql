@@ -31,18 +31,14 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    role_id INTEGER NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE', -- DISABLE
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ DEFAULT NULL
-);
-CREATE TABLE user_roles (
-    user_id BIGINT NOT NULL,
-    role_id INTEGER NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (role_id) REFERENCES roles(id)
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    CONSTRAINT fk_users_role
+        FOREIGN KEY (role_id)
+            REFERENCES roles(id)
 );
 CREATE TABLE products (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
